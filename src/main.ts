@@ -2,6 +2,8 @@ import "./style.css";
 
 document.body.innerHTML = `
   <canvas id = "myCanvas" width = "256" height = "256"></canvas>
+  <br>
+  <button id = "clearButton">Clear</button>
 `;
 
 let isDrawing = false;
@@ -11,7 +13,7 @@ let y = 0;
 const myCanvas = document.getElementById("myCanvas")!;
 const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
   .getContext("2d")!;
-console.log(context);
+const clearButton = document.getElementById("clearButton")!;
 
 myCanvas.addEventListener("mousedown", (e) => {
   x = e.offsetX;
@@ -45,3 +47,7 @@ function drawLine(offsetX: number, offsetY: number) {
   context.stroke();
   context.closePath();
 }
+
+clearButton.addEventListener("click", () => {
+  context.clearRect(0, 0, 256, 256);
+});
