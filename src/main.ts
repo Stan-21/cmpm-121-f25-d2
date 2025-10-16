@@ -9,7 +9,8 @@ let x = 0;
 let y = 0;
 
 const myCanvas = document.getElementById("myCanvas")!;
-const context : CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement).getContext("2d")!;
+const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
+  .getContext("2d")!;
 console.log(context);
 
 myCanvas.addEventListener("mousedown", (e) => {
