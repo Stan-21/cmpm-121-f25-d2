@@ -15,39 +15,65 @@ const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
   .getContext("2d")!;
 const clearButton = document.getElementById("clearButton")!;
 
+interface Point {
+  pX: number;
+  pY: number;
+}
+
+let lines: Point[][] = [];
+let currentLine: Point[] = [];
+
 myCanvas.addEventListener("mousedown", (e) => {
   x = e.offsetX;
   y = e.offsetY;
   isDrawing = true;
+
+  currentLine = [];
+  lines.push(currentLine);
+  currentLine.push({ pX: x, pY: y });
+
+  myCanvas.dispatchEvent(event);
 });
 
 myCanvas.addEventListener("mousemove", (e) => {
   if (isDrawing) {
-    drawLine(e.offsetX, e.offsetY);
     x = e.offsetX;
     y = e.offsetY;
+    currentLine.push({ pX: x, pY: y });
+
+    myCanvas.dispatchEvent(event);
   }
 });
 
-myCanvas.addEventListener("mouseup", (e) => {
+myCanvas.addEventListener("mouseup", () => {
   if (isDrawing) {
-    drawLine(e.offsetX, e.offsetY);
     x = 0;
     y = 0;
     isDrawing = false;
+    currentLine = [];
+
+    myCanvas.dispatchEvent(event);
   }
 });
 
-function drawLine(offsetX: number, offsetY: number) {
-  context.beginPath();
-  context.strokeStyle = "black";
-  context.lineWidth = 1;
-  context.moveTo(x, y);
-  context.lineTo(offsetX, offsetY);
-  context.stroke();
-  context.closePath();
-}
+const event = new Event("build");
+
+myCanvas.addEventListener("build", () => {
+  for (const line of lines) {
+    if (line.length > 1) {
+      context.beginPath();
+      context.strokeStyle = "black";
+      context.lineWidth = 1;
+      context.moveTo((line[0] as Point).pX, (line[0] as Point).pY);
+      for (const point of line) {
+        context.lineTo(point.pX, point.pY);
+      }
+      context.stroke();
+    }
+  }
+});
 
 clearButton.addEventListener("click", () => {
-  context.clearRect(0, 0, 256, 256);
+  lines = [];
+  context.clearRect(0, 0, 256, 256); // Note: Need to not hard code width and height values soon
 });
