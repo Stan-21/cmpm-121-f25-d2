@@ -4,6 +4,8 @@ document.body.innerHTML = `
   <canvas id = "myCanvas" width = "256" height = "256"></canvas>
   <br>
   <button id = "clearButton">Clear</button>
+  <button id = "undoButton">Undo</button>
+  <button id = "redoButton">Redo</button>
 `;
 
 let isDrawing = false;
@@ -13,7 +15,10 @@ let y = 0;
 const myCanvas = document.getElementById("myCanvas")!;
 const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
   .getContext("2d")!;
+
 const clearButton = document.getElementById("clearButton")!;
+const undoButton = document.getElementById("undoButton")!;
+const redoButton = document.getElementById("redoButton")!;
 
 interface Point {
   pX: number;
@@ -21,6 +26,7 @@ interface Point {
 }
 
 let lines: Point[][] = [];
+const redoLines: Point[][] = [];
 let currentLine: Point[] = [];
 
 myCanvas.addEventListener("mousedown", (e) => {
@@ -59,6 +65,7 @@ myCanvas.addEventListener("mouseup", () => {
 const event = new Event("build");
 
 myCanvas.addEventListener("build", () => {
+  context.clearRect(0, 0, 256, 256);
   for (const line of lines) {
     if (line.length > 1) {
       context.beginPath();
@@ -75,5 +82,25 @@ myCanvas.addEventListener("build", () => {
 
 clearButton.addEventListener("click", () => {
   lines = [];
-  context.clearRect(0, 0, 256, 256); // Note: Need to not hard code width and height values soon
+  myCanvas.dispatchEvent(event);
+});
+
+undoButton.addEventListener("click", () => {
+  if (lines.length > 0) {
+    const lastLine = lines.pop();
+    if (lastLine) {
+      redoLines.push(lastLine);
+    }
+    myCanvas.dispatchEvent(event);
+  }
+});
+
+redoButton.addEventListener("click", () => {
+  if (redoLines.length > 0) {
+    const lastLine = redoLines.pop();
+    if (lastLine) {
+      lines.push(lastLine);
+    }
+    myCanvas.dispatchEvent(event);
+  }
 });
