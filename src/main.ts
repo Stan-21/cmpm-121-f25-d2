@@ -2,14 +2,16 @@ import "./style.css";
 
 class Line {
   points: Point[];
-  constructor(x: number, y: number) {
+  thickness: number;
+  constructor(x: number, y: number, thickness: number) {
     this.points = [{ pX: x, pY: y }];
+    this.thickness = thickness;
   }
 
   execute() {
     context.beginPath();
     context.strokeStyle = "black";
-    context.lineWidth = 1;
+    context.lineWidth = this.thickness;
     context.moveTo((this.points[0] as Point).pX, (this.points[0] as Point).pY);
     for (const point of this.points) {
       context.lineTo(point.pX, point.pY);
@@ -29,6 +31,9 @@ document.body.innerHTML = `
   <button id = "clearButton">Clear</button>
   <button id = "undoButton">Undo</button>
   <button id = "redoButton">Redo</button>
+  <br>
+  <button id = "thinMarker">Thin</button>
+  <button id = "thickMarker">Thick</button>
 `;
 
 const myCanvas = document.getElementById("myCanvas")!;
@@ -38,13 +43,17 @@ const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
 const clearButton = document.getElementById("clearButton")!;
 const undoButton = document.getElementById("undoButton")!;
 const redoButton = document.getElementById("redoButton")!;
+const thinButton = document.getElementById("thinMarker")!;
+const thickButton = document.getElementById("thickMarker")!;
 
 let lines: Line[] = [];
 let redoLines: Line[] = [];
 let currentLine: Line | null;
 
+let thickness = 1;
+
 myCanvas.addEventListener("mousedown", (e) => {
-  currentLine = new Line(e.offsetX, e.offsetY);
+  currentLine = new Line(e.offsetX, e.offsetY, thickness);
   lines.push(currentLine);
   redoLines = [];
 
@@ -94,4 +103,12 @@ redoButton.addEventListener("click", () => {
     }
     myCanvas.dispatchEvent(event);
   }
+});
+
+thinButton.addEventListener("click", () => {
+  thickness = 1;
+});
+
+thickButton.addEventListener("click", () => {
+  thickness = 5;
 });
