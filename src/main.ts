@@ -29,13 +29,32 @@ class Cursor {
   }
 
   execute() {
-    if (thickness == 1) {
+    if (selectedEmoji) {
+      context.font = "16px monospace";
+      context.fillText(selectedEmoji, this.x - 8, this.y + 16);
+    } else if (thickness == 1) {
       context.font = "32px monospace";
       context.fillText("*", this.x - 8, this.y + 16);
     } else {
       context.font = "64px monospace";
       context.fillText("*", this.x - 16, this.y + 32);
     }
+  }
+}
+
+class Sticker {
+  x: number;
+  y: number;
+  sticker: string;
+  constructor(x: number, y: number, sticker: string) {
+    this.x = x;
+    this.y = y;
+    this.sticker = sticker;
+  }
+
+  execute() {
+    context.font = "16px monospace";
+    context.fillText(this.sticker, this.x - 8, this.y + 16);
   }
 }
 
@@ -53,6 +72,10 @@ document.body.innerHTML = `
   <br>
   <button id = "thinMarker">Thin</button>
   <button id = "thickMarker">Thick</button>
+  <br>
+  <button id = "rock">🪨</button>
+  <button id = "pick">⛏️</button>
+  <button id = "bomb">💣</button>
 `;
 
 const myCanvas = document.getElementById("myCanvas")!;
@@ -65,13 +88,18 @@ const redoButton = document.getElementById("redoButton")!;
 const thinButton = document.getElementById("thinMarker")!;
 const thickButton = document.getElementById("thickMarker")!;
 
-let lines: Line[] = [];
-let redoLines: Line[] = [];
+const rockButton = document.getElementById("rock")!;
+const pickButton = document.getElementById("pick")!;
+const bombButton = document.getElementById("bomb")!;
+
+let lines: (Line | Sticker)[] = [];
+let redoLines: (Line | Sticker)[] = [];
 let currentLine: Line | null;
 
 let thickness = 1;
 
 let cursorCommand: Cursor | null = null;
+let selectedEmoji: string | null;
 
 myCanvas.addEventListener("mouseenter", (e) => {
   cursorCommand = new Cursor(e.offsetX, e.offsetY);
@@ -84,8 +112,12 @@ myCanvas.addEventListener("mouseleave", () => {
 });
 
 myCanvas.addEventListener("mousedown", (e) => {
-  currentLine = new Line(e.offsetX, e.offsetY, thickness);
-  lines.push(currentLine);
+  if (selectedEmoji) {
+    lines.push(new Sticker(e.offsetX, e.offsetY, selectedEmoji));
+  } else {
+    currentLine = new Line(e.offsetX, e.offsetY, thickness);
+    lines.push(currentLine);
+  }
   redoLines = [];
 
   myCanvas.dispatchEvent(event);
@@ -146,9 +178,26 @@ redoButton.addEventListener("click", () => {
 });
 
 thinButton.addEventListener("click", () => {
+  selectedEmoji = null;
   thickness = 1;
 });
 
 thickButton.addEventListener("click", () => {
+  selectedEmoji = null;
   thickness = 5;
+});
+
+rockButton.addEventListener("click", () => {
+  selectedEmoji = "🪨";
+  myCanvas.dispatchEvent(toolMoved);
+});
+
+pickButton.addEventListener("click", () => {
+  selectedEmoji = "⛏️";
+  myCanvas.dispatchEvent(toolMoved);
+});
+
+bombButton.addEventListener("click", () => {
+  selectedEmoji = "💣";
+  myCanvas.dispatchEvent(toolMoved);
 });
