@@ -20,6 +20,25 @@ class Line {
   }
 }
 
+class Cursor {
+  x: number;
+  y: number;
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  execute() {
+    if (thickness == 1) {
+      context.font = "32px monospace";
+      context.fillText("*", this.x - 8, this.y + 16);
+    } else {
+      context.font = "64px monospace";
+      context.fillText("*", this.x - 16, this.y + 32);
+    }
+  }
+}
+
 interface Point {
   pX: number;
   pY: number;
@@ -52,6 +71,18 @@ let currentLine: Line | null;
 
 let thickness = 1;
 
+let cursorCommand: Cursor | null = null;
+
+myCanvas.addEventListener("mouseenter", (e) => {
+  cursorCommand = new Cursor(e.offsetX, e.offsetY);
+  myCanvas.dispatchEvent(toolMoved);
+});
+
+myCanvas.addEventListener("mouseleave", () => {
+  cursorCommand = null;
+  myCanvas.dispatchEvent(toolMoved);
+});
+
 myCanvas.addEventListener("mousedown", (e) => {
   currentLine = new Line(e.offsetX, e.offsetY, thickness);
   lines.push(currentLine);
@@ -61,11 +92,12 @@ myCanvas.addEventListener("mousedown", (e) => {
 });
 
 myCanvas.addEventListener("mousemove", (e) => {
+  cursorCommand = new Cursor(e.offsetX, e.offsetY);
+  myCanvas.dispatchEvent(toolMoved);
   if (currentLine) {
     currentLine.points.push({ pX: e.offsetX, pY: e.offsetY });
+    myCanvas.dispatchEvent(event);
   }
-
-  myCanvas.dispatchEvent(event);
 });
 
 myCanvas.addEventListener("mouseup", () => {
@@ -73,11 +105,19 @@ myCanvas.addEventListener("mouseup", () => {
   myCanvas.dispatchEvent(event);
 });
 
-const event = new Event("build");
+const event = new Event("drawing-changed");
+const toolMoved = new Event("tool-moved");
 
-myCanvas.addEventListener("build", () => {
+myCanvas.addEventListener("drawing-changed", () => {
   context.clearRect(0, 0, 256, 256);
   lines.forEach((cmd) => cmd.execute());
+});
+
+myCanvas.addEventListener("tool-moved", () => {
+  if (cursorCommand) {
+    myCanvas.dispatchEvent(event);
+    cursorCommand.execute();
+  }
 });
 
 clearButton.addEventListener("click", () => {
