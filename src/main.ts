@@ -1,32 +1,28 @@
 import "./style.css";
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 class Line {
-  points: Point[];
-  thickness: number;
-  constructor(x: number, y: number, thickness: number) {
-    this.points = [{ pX: x, pY: y }];
-    this.thickness = thickness;
-  }
+  constructor(public points: Point[], public thickness: number) {}
 
   execute() {
     context.beginPath();
     context.strokeStyle = "black";
     context.lineWidth = this.thickness;
-    context.moveTo((this.points[0] as Point).pX, (this.points[0] as Point).pY);
-    for (const point of this.points) {
-      context.lineTo(point.pX, point.pY);
+    const { x, y } = this.points[0]!;
+    context.moveTo(x, y);
+    for (const { x, y } of this.points) {
+      context.lineTo(x, y);
     }
     context.stroke();
   }
 }
 
 class Cursor {
-  x: number;
-  y: number;
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
+  constructor(public x: number, public y: number) {}
 
   execute() {
     if (selectedEmoji) {
@@ -43,24 +39,12 @@ class Cursor {
 }
 
 class Sticker {
-  x: number;
-  y: number;
-  sticker: string;
-  constructor(x: number, y: number, sticker: string) {
-    this.x = x;
-    this.y = y;
-    this.sticker = sticker;
-  }
+  constructor(public x: number, public y: number, public sticker: string) {}
 
   execute() {
     context.font = "16px monospace";
     context.fillText(this.sticker, this.x - 8, this.y + 16);
   }
-}
-
-interface Point {
-  pX: number;
-  pY: number;
 }
 
 document.body.innerHTML = `
@@ -92,8 +76,12 @@ const rockButton = document.getElementById("rock")!;
 const pickButton = document.getElementById("pick")!;
 const bombButton = document.getElementById("bomb")!;
 
-let lines: (Line | Sticker)[] = [];
-let redoLines: (Line | Sticker)[] = [];
+interface DrawingCommand {
+  execute(): void;
+}
+
+let lines: DrawingCommand[] = [];
+let redoLines: DrawingCommand[] = [];
 let currentLine: Line | null;
 
 let thickness = 1;
@@ -115,7 +103,7 @@ myCanvas.addEventListener("mousedown", (e) => {
   if (selectedEmoji) {
     lines.push(new Sticker(e.offsetX, e.offsetY, selectedEmoji));
   } else {
-    currentLine = new Line(e.offsetX, e.offsetY, thickness);
+    currentLine = new Line([{ x: e.offsetX, y: e.offsetY }], thickness);
     lines.push(currentLine);
   }
   redoLines = [];
@@ -127,7 +115,7 @@ myCanvas.addEventListener("mousemove", (e) => {
   cursorCommand = new Cursor(e.offsetX, e.offsetY);
   myCanvas.dispatchEvent(toolMoved);
   if (currentLine) {
-    currentLine.points.push({ pX: e.offsetX, pY: e.offsetY });
+    currentLine.points.push({ x: e.offsetX, y: e.offsetY });
     myCanvas.dispatchEvent(event);
   }
 });
