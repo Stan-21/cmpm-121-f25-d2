@@ -8,32 +8,32 @@ interface Point {
 class Line {
   constructor(public points: Point[], public thickness: number) {}
 
-  execute() {
-    context.beginPath();
-    context.strokeStyle = "black";
-    context.lineWidth = this.thickness;
+  execute(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = this.thickness;
     const { x, y } = this.points[0]!;
-    context.moveTo(x, y);
+    ctx.moveTo(x, y);
     for (const { x, y } of this.points) {
-      context.lineTo(x, y);
+      ctx.lineTo(x, y);
     }
-    context.stroke();
+    ctx.stroke();
   }
 }
 
 class Cursor {
   constructor(public x: number, public y: number) {}
 
-  execute() {
+  execute(ctx: CanvasRenderingContext2D) {
     if (selectedEmoji) {
-      context.font = "16px monospace";
-      context.fillText(selectedEmoji, this.x - 8, this.y + 16);
+      ctx.font = "16px monospace";
+      ctx.fillText(selectedEmoji, this.x - 8, this.y + 16);
     } else if (thickness == 1) {
-      context.font = "32px monospace";
-      context.fillText("*", this.x - 8, this.y + 16);
+      ctx.font = "32px monospace";
+      ctx.fillText("*", this.x - 8, this.y + 16);
     } else {
-      context.font = "64px monospace";
-      context.fillText("*", this.x - 16, this.y + 32);
+      ctx.font = "64px monospace";
+      ctx.fillText("*", this.x - 16, this.y + 32);
     }
   }
 }
@@ -41,9 +41,9 @@ class Cursor {
 class Sticker {
   constructor(public x: number, public y: number, public sticker: string) {}
 
-  execute() {
-    context.font = "16px monospace";
-    context.fillText(this.sticker, this.x - 8, this.y + 16);
+  execute(ctx: CanvasRenderingContext2D) {
+    ctx.font = "16px monospace";
+    ctx.fillText(this.sticker, this.x - 8, this.y + 16);
   }
 }
 
@@ -58,6 +58,7 @@ document.body.innerHTML = `
   <button id = "thickMarker">Thick</button>
   <br>
   <button id = "customSticker">Add Custom Sticker</button>
+  <button id = "export">Export</button>
   <br>
 `;
 
@@ -72,6 +73,7 @@ const thinButton = document.getElementById("thinMarker")!;
 const thickButton = document.getElementById("thickMarker")!;
 
 const customButton = document.getElementById("customSticker")!;
+const exportButton = document.getElementById("export")!;
 
 const rockButton = document.createElement("button");
 rockButton.innerText = "🪨";
@@ -95,7 +97,7 @@ stickerList.forEach((element) => {
 });
 
 interface DrawingCommand {
-  execute(): void;
+  execute(ctx: CanvasRenderingContext2D): void;
 }
 
 let lines: DrawingCommand[] = [];
@@ -148,13 +150,13 @@ const toolMoved = new Event("tool-moved");
 
 myCanvas.addEventListener("drawing-changed", () => {
   context.clearRect(0, 0, 256, 256);
-  lines.forEach((cmd) => cmd.execute());
+  lines.forEach((cmd) => cmd.execute(context));
 });
 
 myCanvas.addEventListener("tool-moved", () => {
   if (cursorCommand) {
     myCanvas.dispatchEvent(event);
-    cursorCommand.execute();
+    cursorCommand.execute(context);
   }
 });
 
@@ -204,4 +206,22 @@ customButton.addEventListener("click", () => {
     });
     document.body.append(sticker);
   }
+});
+
+exportButton.addEventListener("click", () => {
+  const canvas = document.createElement("canvas");
+  canvas.id = "myCanvas";
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.scale(4, 4);
+  lines.forEach((command) => {
+    command.execute(ctx);
+  });
+  const anchor = document.createElement("a");
+  anchor.href = canvas.toDataURL("image/png");
+  anchor.download = "sketchpad.png";
+  anchor.click();
 });
