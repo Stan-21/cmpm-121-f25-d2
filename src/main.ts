@@ -57,9 +57,8 @@ document.body.innerHTML = `
   <button id = "thinMarker">Thin</button>
   <button id = "thickMarker">Thick</button>
   <br>
-  <button id = "rock">🪨</button>
-  <button id = "pick">⛏️</button>
-  <button id = "bomb">💣</button>
+  <button id = "customSticker">Add Custom Sticker</button>
+  <br>
 `;
 
 const myCanvas = document.getElementById("myCanvas")!;
@@ -72,9 +71,28 @@ const redoButton = document.getElementById("redoButton")!;
 const thinButton = document.getElementById("thinMarker")!;
 const thickButton = document.getElementById("thickMarker")!;
 
-const rockButton = document.getElementById("rock")!;
-const pickButton = document.getElementById("pick")!;
-const bombButton = document.getElementById("bomb")!;
+const customButton = document.getElementById("customSticker")!;
+
+const rockButton = document.createElement("button");
+rockButton.innerText = "🪨";
+const pickButton = document.createElement("button");
+pickButton.innerText = "⛏️";
+const bombButton = document.createElement("button");
+bombButton.innerText = "💣";
+
+const stickerList: HTMLButtonElement[] = [
+  rockButton,
+  pickButton,
+  bombButton,
+];
+
+stickerList.forEach((element) => {
+  document.body.append(element);
+  element.addEventListener("click", () => {
+    selectedEmoji = element.innerText;
+    myCanvas.dispatchEvent(toolMoved);
+  });
+});
 
 interface DrawingCommand {
   execute(): void;
@@ -175,17 +193,15 @@ thickButton.addEventListener("click", () => {
   thickness = 5;
 });
 
-rockButton.addEventListener("click", () => {
-  selectedEmoji = "🪨";
-  myCanvas.dispatchEvent(toolMoved);
-});
-
-pickButton.addEventListener("click", () => {
-  selectedEmoji = "⛏️";
-  myCanvas.dispatchEvent(toolMoved);
-});
-
-bombButton.addEventListener("click", () => {
-  selectedEmoji = "💣";
-  myCanvas.dispatchEvent(toolMoved);
+customButton.addEventListener("click", () => {
+  const text = prompt("Insert custom sticker text", "💣");
+  if (text) {
+    const sticker = document.createElement("button");
+    sticker.innerHTML = text;
+    sticker.addEventListener("click", () => {
+      selectedEmoji = sticker.innerText;
+      myCanvas.dispatchEvent(toolMoved);
+    });
+    document.body.append(sticker);
+  }
 });
