@@ -1,3 +1,3 @@
 # CMPM 121 D2 Project
 
-This is the starting point for your CMPM 121 D2 project. Students should make sure to remove _this_ content from their README.md file and replace it with their own project documentation.
+This project contains a fun and simple to use drawing program.  Draw with a brush, place down stickers, add custom stickers, and even export your drawing!
