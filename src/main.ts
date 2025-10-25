@@ -26,14 +26,20 @@ class Cursor {
 
   execute(ctx: CanvasRenderingContext2D) {
     if (selectedEmoji) {
-      ctx.font = "16px monospace";
+      ctx.font = "32px monospace";
       ctx.fillText(selectedEmoji, this.x - 8, this.y + 16);
     } else if (thickness == 1) {
       ctx.font = "32px monospace";
       ctx.fillText("*", this.x - 8, this.y + 16);
-    } else {
+    } else if (thickness == 2.5) {
+      ctx.font = "48px monospace";
+      ctx.fillText("*", this.x - 12, this.y + 24);
+    } else if (thickness == 5) {
       ctx.font = "64px monospace";
       ctx.fillText("*", this.x - 16, this.y + 32);
+    } else {
+      ctx.font = "128px monospace";
+      ctx.fillText("*", this.x - 32, this.y + 64);
     }
   }
 }
@@ -42,24 +48,31 @@ class Sticker {
   constructor(public x: number, public y: number, public sticker: string) {}
 
   execute(ctx: CanvasRenderingContext2D) {
-    ctx.font = "16px monospace";
+    ctx.font = "32px monospace";
     ctx.fillText(this.sticker, this.x - 8, this.y + 16);
   }
 }
 
 document.body.innerHTML = `
+  <div id = "body">
+  <h1>D2: Sticker Sketchpad</h1>
   <canvas id = "myCanvas" width = "256" height = "256"></canvas>
   <br>
+  <div>
   <button id = "clearButton">Clear</button>
   <button id = "undoButton">Undo</button>
   <button id = "redoButton">Redo</button>
-  <br>
-  <button id = "thinMarker">Thin</button>
-  <button id = "thickMarker">Thick</button>
-  <br>
-  <button id = "customSticker">Add Custom Sticker</button>
   <button id = "export">Export</button>
-  <br>
+  </div>
+  <div>
+  <button id = "thinnestMarker" class = "marker">Thinnest</button>
+  <button id = "thinMarker" class = "marker">Thin</button>
+  <button id = "thickMarker" class = "marker">Thick</button>
+  <button id = "thickestMarker" class = "marker">Thickest</button>
+  </div>
+  <div id = "stickerDiv"></div>
+  <button id = "customSticker">Add Custom Sticker</button>
+  </div>
 `;
 
 const myCanvas = document.getElementById("myCanvas")!;
@@ -69,11 +82,16 @@ const context: CanvasRenderingContext2D = (myCanvas as HTMLCanvasElement)
 const clearButton = document.getElementById("clearButton")!;
 const undoButton = document.getElementById("undoButton")!;
 const redoButton = document.getElementById("redoButton")!;
+
+const thinnestButton = document.getElementById("thinnestMarker")!;
 const thinButton = document.getElementById("thinMarker")!;
 const thickButton = document.getElementById("thickMarker")!;
+const thickestButton = document.getElementById("thickestMarker")!;
 
 const customButton = document.getElementById("customSticker")!;
 const exportButton = document.getElementById("export")!;
+
+const stickerDiv = document.getElementById("stickerDiv")!;
 
 const rockButton = document.createElement("button");
 rockButton.innerText = "🪨";
@@ -89,7 +107,8 @@ const stickerList: HTMLButtonElement[] = [
 ];
 
 stickerList.forEach((element) => {
-  document.body.append(element);
+  stickerDiv.append(element);
+  element.className = "marker";
   element.addEventListener("click", () => {
     selectedEmoji = element.innerText;
     myCanvas.dispatchEvent(toolMoved);
@@ -140,6 +159,11 @@ myCanvas.addEventListener("mousemove", (e) => {
   }
 });
 
+myCanvas.addEventListener("mouseleave", () => {
+  cursorCommand = null;
+  myCanvas.dispatchEvent(toolMoved);
+});
+
 myCanvas.addEventListener("mouseup", () => {
   currentLine = null;
   myCanvas.dispatchEvent(event);
@@ -154,8 +178,8 @@ myCanvas.addEventListener("drawing-changed", () => {
 });
 
 myCanvas.addEventListener("tool-moved", () => {
+  myCanvas.dispatchEvent(event);
   if (cursorCommand) {
-    myCanvas.dispatchEvent(event);
     cursorCommand.execute(context);
   }
 });
@@ -185,9 +209,14 @@ redoButton.addEventListener("click", () => {
   }
 });
 
-thinButton.addEventListener("click", () => {
+thinnestButton.addEventListener("click", () => {
   selectedEmoji = null;
   thickness = 1;
+});
+
+thinButton.addEventListener("click", () => {
+  selectedEmoji = null;
+  thickness = 2.5;
 });
 
 thickButton.addEventListener("click", () => {
@@ -195,16 +224,22 @@ thickButton.addEventListener("click", () => {
   thickness = 5;
 });
 
+thickestButton.addEventListener("click", () => {
+  selectedEmoji = null;
+  thickness = 10;
+});
+
 customButton.addEventListener("click", () => {
   const text = prompt("Insert custom sticker text", "💣");
   if (text) {
     const sticker = document.createElement("button");
     sticker.innerHTML = text;
+    sticker.className = "marker";
     sticker.addEventListener("click", () => {
       selectedEmoji = sticker.innerText;
       myCanvas.dispatchEvent(toolMoved);
     });
-    document.body.append(sticker);
+    stickerDiv.append(sticker);
   }
 });
 

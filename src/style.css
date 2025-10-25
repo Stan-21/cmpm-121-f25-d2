@@ -8,3 +8,18 @@
   border: 1px solid black;
   cursor: none;
 }
+
+#stickerDiv {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 160px;
+  gap: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin: 0 auto;
+}
+
+div {
+  text-align: center;
+}
