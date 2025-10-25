@@ -6,11 +6,15 @@ interface Point {
 }
 
 class Line {
-  constructor(public points: Point[], public thickness: number) {}
+  constructor(
+    public points: Point[],
+    public thickness: number,
+    public color: string,
+  ) {}
 
   execute(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = this.color;
     ctx.lineWidth = this.thickness;
     const { x, y } = this.points[0]!;
     ctx.moveTo(x, y);
@@ -45,11 +49,20 @@ class Cursor {
 }
 
 class Sticker {
-  constructor(public x: number, public y: number, public sticker: string) {}
+  constructor(
+    public x: number,
+    public y: number,
+    public sticker: string,
+    public rotation: number,
+  ) {}
 
   execute(ctx: CanvasRenderingContext2D) {
+    ctx.save();
     ctx.font = "32px monospace";
-    ctx.fillText(this.sticker, this.x - 8, this.y + 16);
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.fillText(this.sticker, 0, 0);
+    ctx.restore();
   }
 }
 
@@ -72,6 +85,7 @@ document.body.innerHTML = `
   </div>
   <div id = "stickerDiv"></div>
   <button id = "customSticker">Add Custom Sticker</button>
+  <button id = "randomizeColor">Randomize Color!</button>
   </div>
 `;
 
@@ -89,6 +103,7 @@ const thickButton = document.getElementById("thickMarker")!;
 const thickestButton = document.getElementById("thickestMarker")!;
 
 const customButton = document.getElementById("customSticker")!;
+const randomButton = document.getElementById("randomizeColor")!;
 const exportButton = document.getElementById("export")!;
 
 const stickerDiv = document.getElementById("stickerDiv")!;
@@ -124,6 +139,7 @@ let redoLines: DrawingCommand[] = [];
 let currentLine: Line | null;
 
 let thickness = 1;
+let brushColor = "#000000";
 
 let cursorCommand: Cursor | null = null;
 let selectedEmoji: string | null;
@@ -140,9 +156,20 @@ myCanvas.addEventListener("mouseleave", () => {
 
 myCanvas.addEventListener("mousedown", (e) => {
   if (selectedEmoji) {
-    lines.push(new Sticker(e.offsetX, e.offsetY, selectedEmoji));
+    lines.push(
+      new Sticker(
+        e.offsetX,
+        e.offsetY,
+        selectedEmoji,
+        randomIntFromInterval(0, 360) * Math.PI / 180,
+      ),
+    );
   } else {
-    currentLine = new Line([{ x: e.offsetX, y: e.offsetY }], thickness);
+    currentLine = new Line(
+      [{ x: e.offsetX, y: e.offsetY }],
+      thickness,
+      brushColor,
+    );
     lines.push(currentLine);
   }
   redoLines = [];
@@ -243,6 +270,12 @@ customButton.addEventListener("click", () => {
   }
 });
 
+randomButton.addEventListener("click", () => {
+  const color = getRandomColor();
+  brushColor = color;
+  randomButton.style.color = color;
+});
+
 exportButton.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
   canvas.id = "myCanvas";
@@ -260,3 +293,16 @@ exportButton.addEventListener("click", () => {
   anchor.download = "sketchpad.png";
   anchor.click();
 });
+
+function randomIntFromInterval(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
